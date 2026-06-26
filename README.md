@@ -151,6 +151,27 @@ make test          # backend unit tests (parsing, validation, render)
 - `make install` runs `playwright install chromium`. On hosts that ship a
   pre-installed Chromium, set `PLAYWRIGHT_EXECUTABLE_PATH` to its binary.
 
+## What's editable in the UI
+
+Every value that appears in the PDF is editable before generation:
+- Issue header; **US / Europe / Asia / CIS** news + capital-markets news.
+- **CBU FX**, **UZONIA / interbank / REPO**, and the liquidity **summary band**.
+- Bloomberg **FX crosses, commodities, equity indices, US treasuries** and the
+  **rate curves** (SOFR/EURIBOR/…); drag-and-drop the `.xlsx` to fill them.
+- **Telegram stock results** (flagged rows highlighted).
+- **Bond tables** (corporate / govt / eurobonds) — generic editable grids with
+  add/remove-row and editable titles.
+
+Convenience: **⟳ Обновить всё** runs every live source into one pre-filled
+draft; **↧ Черновики новостей из Telegram** pulls recent channel posts into the
+region textboxes (routed via `TELEGRAM_NEWS_CHANNEL_MAP`).
+
+## Morning auto-refresh
+
+Set `SCHEDULER_ENABLED=true` (+ `REFRESH_HOUR`) to pre-warm the CBU rate cache
+daily so the form opens fast/pre-filled. It's a tiny in-process asyncio loop —
+no external scheduler — and failures never take the service down.
+
 ## Build status
 
 Steps 1–7 of the planned build order are implemented (scaffold + template,

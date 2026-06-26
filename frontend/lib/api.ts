@@ -61,6 +61,10 @@ export const api = {
     fetch(`${API_BASE}/api/fetch/money-market`, { method: "POST" }).then(jsonOrThrow),
   fetchStocks: (): Promise<StockTable> =>
     fetch(`${API_BASE}/api/fetch/stocks`, { method: "POST" }).then(jsonOrThrow),
+  newsDrafts: (): Promise<Record<string, string[]>> =>
+    fetch(`${API_BASE}/api/news/drafts`, { method: "POST" }).then(jsonOrThrow),
+  refreshAll: (): Promise<Newsletter> =>
+    fetch(`${API_BASE}/api/refresh-all`, { method: "POST" }).then(jsonOrThrow),
 
   uploadBloomberg: (file: File) => {
     const fd = new FormData();

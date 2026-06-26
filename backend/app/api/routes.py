@@ -133,7 +133,30 @@ async def upload_stock_image(file: UploadFile = File(...)) -> StockTable:
 
 @router.post("/news/drafts")
 async def news_drafts() -> dict:
+    """Pull recent posts from configured news channels, routed by region."""
     return await telegram_news.fetch_news_drafts()
+
+
+@router.post("/refresh-all", response_model=Newsletter)
+async def refresh_all() -> Newsletter:
+    """Assemble one pre-filled newsletter from every available live source.
+
+    Starts from the reference structure (so the layout is complete) and
+    overrides with live CBU FX + money-market + news drafts. Bloomberg and
+    the Telegram stock photo still need a file/fetch, so those keep their
+    sample placeholders for the user to replace. Everything stays editable.
+    """
+    nl = sample_data.sample_newsletter()
+    nl.cbu_fx = cbu_currency.fetch()
+    nl.money_market = cbu_money_market.fetch()
+    drafts = await telegram_news.fetch_news_drafts()
+    for region in ("us", "europe", "asia", "cis"):
+        posts = drafts.get(region) or []
+        if posts:
+            setattr(nl.news, region, "\n".join(posts))
+    if drafts.get("capital_markets"):
+        nl.news.capital_markets = drafts["capital_markets"]
+    return nl
 
 
 # --------------------------------------------------------------------------- #

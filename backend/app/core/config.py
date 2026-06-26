@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     telegram_session: str = str(BACKEND_ROOT / "config" / "tg.session")
     telegram_stock_channel: str = ""   # @channel or numeric id
     telegram_news_channels: list[str] = []
+    # Map a news channel (@handle or id) to a newsletter region so pulled
+    # posts pre-fill the right textbox. Regions: us|europe|asia|cis|capital_markets
+    telegram_news_channel_map: dict[str, str] = {}
+    telegram_news_per_channel: int = 5
 
     # --- Anthropic ----------------------------------------------------------
     anthropic_api_key: Optional[str] = None
@@ -59,6 +63,11 @@ class Settings(BaseSettings):
 
     # --- Cache --------------------------------------------------------------
     cache_dir: str = str(BACKEND_ROOT / ".cache")
+
+    # --- Morning auto-refresh scheduler -------------------------------------
+    # When enabled, pre-warms the CBU rate cache daily so the form opens fast.
+    scheduler_enabled: bool = False
+    refresh_hour: int = 7      # local hour (0-23)
 
     # --- Misc ---------------------------------------------------------------
     http_timeout: float = 15.0

@@ -6,6 +6,7 @@ import EditableGrid, { Col } from "@/components/EditableGrid";
 import FileDrop from "@/components/FileDrop";
 import MetaBadge from "@/components/MetaBadge";
 import DesignPanel from "@/components/DesignPanel";
+import CapitalGrid from "@/components/CapitalGrid";
 
 const CHANGE_COLS = (label: string): Col[] => [
   { key: "name", label },
@@ -116,6 +117,13 @@ export default function Home() {
           <DesignPanel layout={layout} onChange={onLayoutChange} onReset={resetLayout} />
         ) : (
         <>
+        <button disabled={busy === "all"} onClick={() => run("all", async () => {
+          const fresh = await api.refreshAll();
+          setNl(fresh);
+        })} style={{ marginTop: 6 }}>
+          {busy === "all" ? "Обновление…" : "⟳ Обновить всё (CBU + новости)"}
+        </button>
+
         {/* ----- Header meta ----- */}
         <h2>Выпуск</h2>
         <div className="row">
@@ -135,6 +143,17 @@ export default function Home() {
 
         {/* ----- News ----- */}
         <h2>Новости (свободный текст)</h2>
+        <button className="ghost" disabled={busy === "news"} onClick={() => run("news", async () => {
+          const drafts = await api.newsDrafts();
+          patch((d) => {
+            (["us", "europe", "asia", "cis"] as const).forEach((k) => {
+              if (drafts[k]?.length) d.news[k] = drafts[k].join("\n");
+            });
+            if (drafts.capital_markets?.length) d.news.capital_markets = drafts.capital_markets;
+          });
+        })} style={{ marginBottom: 8 }}>
+          {busy === "news" ? "Загрузка…" : "↧ Черновики новостей из Telegram"}
+        </button>
         {([["us", "США"], ["europe", "ЕВРОПА"], ["asia", "АЗИЯ"], ["cis", "СНГ"]] as const).map(([k, lbl]) => (
           <div key={k}>
             <label className="field">{lbl}</label>
@@ -206,6 +225,21 @@ export default function Home() {
               rows={nl.money_market.repo.rows}
               onChange={(rows) => patch((d) => (d.money_market.repo.rows = rows))}
             />
+            <label className="field">Общая ликвидность банковской системы (нижняя плашка)</label>
+            <div className="row">
+              {([
+                ["total_liquidity", "Общая ликв. (трлн)"],
+                ["deviation_from_norm", "Откл. от нормы (трлн)"],
+                ["cb_withdrawal_ops", "Привлечение ЦБ (трлн)"],
+                ["cb_provision_ops", "Предоставление ЦБ"],
+              ] as const).map(([k, lbl]) => (
+                <div key={k} style={{ flex: 1, minWidth: 120 }}>
+                  <label className="field">{lbl}</label>
+                  <input value={nl.money_market.summary?.[k] ?? ""}
+                    onChange={(e) => patch((d) => (d.money_market.summary[k] = e.target.value === "" ? null : Number(e.target.value)))} />
+                </div>
+              ))}
+            </div>
           </>
         )}
 
@@ -219,12 +253,54 @@ export default function Home() {
         <MetaBadge meta={nl.bloomberg?.meta} />
         {nl.bloomberg && (
           <>
+            <label className="field">Курсы валют (международные)</label>
+            <EditableGrid
+              cols={[
+                { key: "code", label: "Кросс" }, { key: "price", label: "Цена", type: "number" },
+                { key: "change_1m", label: "1m", type: "number" }, { key: "change_6m", label: "6m", type: "number" },
+                { key: "change_12m", label: "12m", type: "number" },
+              ]}
+              rows={nl.bloomberg.fx.rows}
+              addable newRow={() => ({ code: "", price: null })}
+              onChange={(rows) => patch((d) => (d.bloomberg.fx.rows = rows))} />
+
             <label className="field">Сырьевой рынок</label>
             <EditableGrid cols={CHANGE_COLS("Сырьё")} rows={nl.bloomberg.commodities.rows}
+              addable newRow={() => ({ name: "", price: null })}
               onChange={(rows) => patch((d) => (d.bloomberg.commodities.rows = rows))} />
+
             <label className="field">Индексы фондового рынка</label>
             <EditableGrid cols={CHANGE_COLS("Индекс")} rows={nl.bloomberg.equities.rows}
+              addable newRow={() => ({ name: "", price: null })}
               onChange={(rows) => patch((d) => (d.bloomberg.equities.rows = rows))} />
+
+            <label className="field">Облигации казначейства США</label>
+            <EditableGrid
+              cols={[
+                { key: "tenor", label: "Срок" }, { key: "yld", label: "Доходность", type: "number" },
+                { key: "change_1m", label: "1m", type: "number" }, { key: "change_6m", label: "6m", type: "number" },
+                { key: "change_12m", label: "12m", type: "number" },
+              ]}
+              rows={nl.bloomberg.treasuries.rows}
+              addable newRow={() => ({ tenor: "", yld: null })}
+              onChange={(rows) => patch((d) => (d.bloomberg.treasuries.rows = rows))} />
+
+            <details style={{ marginTop: 8 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 600 }}>Ставки (кривые): SOFR, EURIBOR, …</summary>
+              {nl.bloomberg.rate_curves.map((c: any, ci: number) => (
+                <div key={ci}>
+                  <label className="field">{c.name}</label>
+                  <EditableGrid
+                    cols={[
+                      { key: "date", label: "Дата" }, { key: "on", label: "O/N", type: "number" },
+                      { key: "m1", label: "1M", type: "number" }, { key: "m3", label: "3M", type: "number" },
+                      { key: "m6", label: "6M", type: "number" }, { key: "m12", label: "12M", type: "number" },
+                    ]}
+                    rows={c.rows}
+                    onChange={(rows) => patch((d) => (d.bloomberg.rate_curves[ci].rows = rows))} />
+                </div>
+              ))}
+            </details>
           </>
         )}
 
@@ -260,6 +336,14 @@ export default function Home() {
             />
           </>
         )}
+
+        {/* ----- Capital-market bond tables ----- */}
+        <h2>Рынок капитала — облигации</h2>
+        <p className="muted">Корпоративные / гос. облигации и еврооблигации. Редактируйте ячейки, добавляйте строки.</p>
+        {(nl.capital_tables || []).map((t: any, i: number) => (
+          <CapitalGrid key={t.slot || i} table={t}
+            onChange={(nt) => patch((d) => { d.capital_tables[i] = nt; })} />
+        ))}
 
         <div style={{ height: 30 }} />
         </>
