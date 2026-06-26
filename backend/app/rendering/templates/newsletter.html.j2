@@ -37,16 +37,12 @@ body {
   padding: 6mm 6.4mm;
 }
 .page:last-child { page-break-after: auto; }
-{% if background_placement == 'watermark' and background_uri %}
-.page::before {
-  content: ""; position: absolute; inset: 0;
-  background-image: url('{{ background_uri }}');
-  background-size: cover; background-position: center;
-  opacity: {{ background_opacity }}; filter: grayscale(0.5);
-  pointer-events: none; z-index: 0;
+.bg-wm {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: {{ background_opacity }};
+  filter: grayscale(0.5); pointer-events: none; z-index: 0;
 }
-{% endif %}
-.page > * { position: relative; z-index: 1; }
+.page > *:not(.bg-wm) { position: relative; z-index: 1; }
 
 /* ---------- Masthead ---------- */
 .masthead {
@@ -143,8 +139,10 @@ tr.flagged td { background: #fff3c4 !important; }
 </head>
 <body>
 
+{% set show_wm = background_placement == 'watermark' and background_uri %}
 {# ===================== PAGE 1 — NEWS ===================== #}
 <section class="page">
+  {% if show_wm %}<img class="bg-wm" src="{{ background_uri }}"/>{% endif %}
   <header class="masthead">
     <div class="logo-badge">{% if logo_uri %}<img src="{{ logo_uri }}"/>{% endif %}</div>
     <div class="cartouche">
@@ -170,6 +168,7 @@ tr.flagged td { background: #fff3c4 !important; }
 
 {# ===================== PAGE 2 — DATA ===================== #}
 <section class="page">
+  {% if show_wm %}<img class="bg-wm" src="{{ background_uri }}"/>{% endif %}
   <div class="two-col">
     {# -------- LEFT: LOCAL MARKET -------- #}
     <div>
