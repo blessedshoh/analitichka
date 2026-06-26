@@ -1,6 +1,9 @@
 // Thin typed client for the FastAPI backend.
+// `??` (not `||`) so an explicit empty string means "same origin" — used by
+// the single-container deploy where FastAPI serves this app and the API
+// together. Local dev leaves it unset and falls back to the dev backend.
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
 // ---- Types (mirror backend pydantic models, loosely) ----------------------
 export interface SourceMeta {
