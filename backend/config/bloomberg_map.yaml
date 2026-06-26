@@ -1,0 +1,84 @@
+# Bloomberg daily-export parse map.
+#
+# This file is the ONLY place cell positions live — the parser hardcodes
+# nothing. Adjust it when the Bloomberg layout changes; no code edit needed.
+#
+# Each table is located by an "anchor": the first cell whose text contains
+# `anchor` (case-insensitive substring) inside `sheet`. Data is then read
+# from `data_start_row_offset` rows below the anchor, for up to `max_rows`,
+# with columns taken relative to the anchor's column via `columns` offsets.
+#
+#   columns:
+#     <field>: <integer column offset from the anchor column>
+#
+# A negative/`null` offset means "absent in this export" -> left blank.
+# `label_col` (offset) supplies the row's name/tenor where applicable.
+
+defaults:
+  data_start_row_offset: 2   # anchor row, then a header row, then data
+  max_rows: 30
+
+# --- Benchmark rate curves (O/N, 1M, 3M, 6M, 12M) -----------------------------
+rate_curves:
+  - name: "СТАВКА USD SOFR (%)"
+    sheet: "Main"
+    anchor: "SOFR"
+    label_col: 0          # the date column
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+  - name: "СТАВКА EURO STR (%)"
+    sheet: "Main"
+    anchor: "EURO STR"
+    label_col: 0
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+  - name: "СТАВКА EURIBOR (%)"
+    sheet: "Main"
+    anchor: "EURIBOR"
+    label_col: 0
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+  - name: "СТАВКА HIBOR CNH (%)"
+    sheet: "Main"
+    anchor: "HIBOR"
+    label_col: 0
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+  - name: "СТАВКА SHIBOR CNY (%)"
+    sheet: "Main"
+    anchor: "SHIBOR"
+    label_col: 0
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+  - name: "СТАВКА RUONIA RUB (%)"
+    sheet: "Main"
+    anchor: "RUONIA"
+    label_col: 0
+    columns: { date: 0, on: 1, m1: 2, m3: 3, m6: 4, m12: 5 }
+
+# --- International FX crosses --------------------------------------------------
+fx:
+  sheet: "Main"
+  anchor: "КУРСЫ ВАЛЮТ"
+  label_col: 0           # e.g. EURUSD
+  columns: { code: 0, price: 1, change_1m: 2, change_6m: 3, change_12m: 4 }
+  max_rows: 12
+
+# --- Commodities --------------------------------------------------------------
+commodities:
+  sheet: "Main"
+  anchor: "СЫРЬЕВОЙ РЫНОК"
+  label_col: 0
+  columns: { name: 0, price: 1, change_1m: 2, change_6m: 3, change_12m: 4 }
+  max_rows: 12
+
+# --- Equity indices -----------------------------------------------------------
+equities:
+  sheet: "Main"
+  anchor: "ИНДЕКСЫ ФОНДОВОГО РЫНКА"
+  label_col: 0
+  columns: { name: 0, price: 1, change_1m: 2, change_6m: 3, change_12m: 4 }
+  max_rows: 12
+
+# --- US treasuries ------------------------------------------------------------
+treasuries:
+  sheet: "Main"
+  anchor: "ОБЛИГАЦИИ КАЗНАЧЕЙСТВА"
+  label_col: 0
+  columns: { tenor: 0, yld: 1, change_1m: 2, change_6m: 3, change_12m: 4 }
+  max_rows: 8

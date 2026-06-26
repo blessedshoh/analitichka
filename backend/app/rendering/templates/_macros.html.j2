@@ -1,0 +1,94 @@
+{% macro num(v, dp=2) %}{% if v is not none %}{{ '{:,.{}f}'.format(v, dp).replace(',', ' ') }}{% else %}—{% endif %}{% endmacro %}
+{% macro chg(v) %}{% if v is not none %}<td class="{{ 'pos' if v >= 0 else 'neg' }}">{{ '{:+.2f}'.format(v) }}</td>{% else %}<td>—</td>{% endif %}{% endmacro %}
+
+{% macro fx_table(t, caption, label) %}
+<table class="tbl">
+  <caption>{{ caption }}</caption>
+  <tr><th class="lbl" rowspan="2">{{ label }}</th><th rowspan="2">Цена</th><th colspan="3">Изменения</th></tr>
+  <tr><th>1 month</th><th>6 month</th><th>12 month</th></tr>
+  {% for r in t.rows %}
+  <tr><td class="lbl">{{ r.code }}</td><td>{{ num(r.price) }}</td>{{ chg(r.change_1m) }}{{ chg(r.change_6m) }}{{ chg(r.change_12m) }}</tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro change_table(rows, caption, label) %}
+<table class="tbl">
+  <caption>{{ caption }}</caption>
+  <tr><th class="lbl" rowspan="2">{{ label }}</th><th rowspan="2">Цена</th><th colspan="3">Изменения</th></tr>
+  <tr><th>1m</th><th>6m</th><th>12m</th></tr>
+  {% for r in rows %}
+  <tr><td class="lbl">{{ r.name }}</td><td>{{ num(r.price) }}</td>{{ chg(r.change_1m) }}{{ chg(r.change_6m) }}{{ chg(r.change_12m) }}</tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro curve_table(c) %}
+<table class="tbl">
+  <caption>{{ c.name }}</caption>
+  <tr><th class="lbl">Дата</th><th>O/N</th><th>1M</th><th>3M</th><th>6M</th><th>12M</th></tr>
+  {% for r in c.rows %}
+  <tr><td class="lbl">{{ r.date }}</td><td>{{ num(r.on) }}</td><td>{{ num(r.m1) }}</td><td>{{ num(r.m3) }}</td><td>{{ num(r.m6) }}</td><td>{{ num(r.m12) }}</td></tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro uzonia_table(t) %}
+<table class="tbl">
+  <caption>СТАВКА UZONIA (%)</caption>
+  <tr><th class="lbl">Дата</th><th>O/N</th><th>1 Week</th><th>1 Month</th><th>3 Month</th><th>6 Month</th></tr>
+  {% for r in t.rows %}
+  <tr><td class="lbl">{{ r.date }}</td><td>{{ num(r.on) }}</td><td>{{ num(r.w1) }}</td><td>{{ num(r.m1) }}</td><td>{{ num(r.m3) }}</td><td>{{ num(r.m6) }}</td></tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro repo_table(t) %}
+<table class="tbl">
+  <caption>Обзор рынка РЕПО</caption>
+  <tr><th class="lbl">Дата</th><th>Кол-во сделок</th><th>Средняя ставка</th><th>Объём млн. сум</th></tr>
+  {% for r in t.rows %}
+  <tr><td class="lbl">{{ r.date }}</td><td>{{ num(r.deals, 0) }}</td><td>{{ num(r.avg_rate) }}</td><td>{{ num(r.volume, 0) }}</td></tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro interbank_table(t) %}
+<table class="tbl">
+  <caption>МЕЖБАНКОВСКИЕ ДЕПОЗИТЫ</caption>
+  <tr><th class="lbl">Период</th><th class="lbl">Дата</th><th>Ставка (%)</th><th>Тренд (%)</th><th>Объём млн</th></tr>
+  {% for r in t.rows %}
+  <tr><td class="lbl">{{ r.tenor }}</td><td class="lbl">{{ r.date }}</td><td>{{ num(r.rate) }}</td>{{ chg(r.trend) }}<td>{{ num(r.volume, 0) }}</td></tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro treasury_table(t) %}
+<table class="tbl">
+  <caption>ОБЛИГАЦИИ КАЗНАЧЕЙСТВА США</caption>
+  <tr><th class="lbl" rowspan="2">Срок</th><th rowspan="2">Доходность</th><th colspan="3">Изменения</th></tr>
+  <tr><th>1m</th><th>6m</th><th>12m</th></tr>
+  {% for r in t.rows %}
+  <tr><td class="lbl">{{ r.tenor }}</td><td>{{ num(r.yld) }}</td>{{ chg(r.change_1m) }}{{ chg(r.change_6m) }}{{ chg(r.change_12m) }}</tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro stocks_table(t) %}
+<table class="tbl">
+  <caption>ИТОГИ ТОРГОВ НА ФОНДОВОМ РЫНКЕ</caption>
+  <tr><th class="lbl">Название</th><th>Цена (пред.)</th><th>Цена (тек.)</th><th>Изменение %</th></tr>
+  {% for r in t.rows %}
+  <tr class="{{ 'flagged' if r.flagged }}"><td class="lbl">{{ r.ticker }}</td><td>{{ num(r.price_prev) }}</td><td>{{ num(r.price_curr) }}</td>{{ chg(r.change_pct) }}</tr>
+  {% endfor %}
+</table>
+{% endmacro %}
+
+{% macro summary_band(s) %}
+<div class="summary-band">
+  <div class="cell"><span class="k">Общая ликвидность (итог корр. счетов в ЦБ)</span><span class="v">{{ num(s.total_liquidity) }} трлн</span></div>
+  <div class="cell"><span class="k">Разница ликвидности от нормы усреднения резервов</span><span class="v">{{ num(s.deviation_from_norm) }} трлн</span></div>
+  <div class="cell"><span class="k">Остаток операций ЦБ по привлечению ликвидности</span><span class="v">{{ num(s.cb_withdrawal_ops) }} трлн</span></div>
+  <div class="cell"><span class="k">Предоставление ликвидности от ЦБ</span><span class="v">{{ num(s.cb_provision_ops, 0) }}</span></div>
+</div>
+{% endmacro %}

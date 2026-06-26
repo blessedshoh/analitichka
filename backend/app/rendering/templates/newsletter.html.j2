@@ -1,0 +1,248 @@
+{% from "_macros.html.j2" import num, chg, fx_table, change_table, curve_table, uzonia_table, repo_table, interbank_table, treasury_table, stocks_table, summary_band with context %}
+{#-
+  NBU "ОБЗОР РЫНКА" newsletter — two A4-landscape pages.
+  Page 1: regional news quadrants. Page 2: local + international data.
+  All colours come from variables passed by the renderer; the gold accent is
+  defined ONCE as --accent-gold and referenced everywhere.
+-#}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<style>
+:root {
+  --accent-gold: {{ accent_gold }};
+  --page-bg: {{ page_bg }};
+  --ink: #2b2b2b;
+  --muted: #6b6357;
+  --band-text: #4a3f2a;
+  --grid: #d9ccb4;
+  --row-alt: #faf6ee;
+  --pos: #1b7a3d;
+  --neg: #b3261e;
+}
+@page { size: A4 landscape; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+  color: var(--ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.page {
+  position: relative;
+  width: 297mm; height: 210mm;
+  background: var(--page-bg);
+  overflow: hidden;
+  page-break-after: always;
+  padding: 6mm 7mm;
+}
+.page:last-child { page-break-after: auto; }
+
+{% if background_placement == 'watermark' and background_uri %}
+.page::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: url('{{ background_uri }}');
+  background-size: cover; background-position: center;
+  opacity: {{ background_opacity }};
+  pointer-events: none; z-index: 0;
+}
+{% endif %}
+.page > * { position: relative; z-index: 1; }
+
+/* ---------- Header band ---------- */
+.masthead {
+  display: grid;
+  grid-template-columns: 70px 1fr 250px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.masthead .logo { height: 56px; }
+.masthead .title { text-align: center; }
+.masthead .title h1 {
+  margin: 0; font-size: 26px; letter-spacing: 3px; font-weight: 800;
+  color: var(--ink);
+}
+.masthead .title .date {
+  font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-top: 2px;
+}
+.masthead .dept {
+  background: var(--accent-gold);
+  color: var(--band-text);
+  font-weight: 700; font-size: 12px;
+  text-align: center; padding: 12px 8px; border-radius: 2px;
+}
+
+/* ---------- Page 1: news quadrants ---------- */
+.quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+  height: calc(210mm - 12mm - 70px);
+}
+.quad { display: flex; flex-direction: column; border: 1px solid var(--grid); background: rgba(255,255,255,0.55); }
+.quad .band {
+  background: var(--accent-gold);
+  color: var(--band-text);
+  text-align: center; font-weight: 800; font-size: 15px; letter-spacing: 2px;
+  padding: 4px 0;
+}
+.quad .body {
+  padding: 6px 9px; font-size: 8.6px; line-height: 1.32; text-align: justify;
+  color: #1f1f1f; overflow: hidden; flex: 1;
+}
+.quad .body p { margin: 0 0 4px 0; }
+
+/* ---------- Page 2: two market columns ---------- */
+.col-head {
+  background: #2c2c2c; color: #fff; text-align: center;
+  font-weight: 800; font-size: 15px; letter-spacing: 2px; padding: 3px 0;
+  margin-bottom: 4px;
+}
+.section-band {
+  background: var(--accent-gold); color: var(--band-text);
+  text-align: center; font-weight: 800; font-size: 11px; letter-spacing: 1px;
+  padding: 2px 0; margin: 4px 0 3px;
+}
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.subgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+table.tbl {
+  width: 100%; border-collapse: collapse; font-size: 7px;
+  background: rgba(255,255,255,0.7);
+}
+table.tbl caption {
+  background: var(--accent-gold); color: var(--band-text);
+  font-weight: 700; font-size: 8px; padding: 2px; letter-spacing: .5px;
+}
+table.tbl th, table.tbl td {
+  border: 1px solid var(--grid); padding: 1.5px 3px; text-align: right;
+  white-space: nowrap;
+}
+table.tbl th {
+  background: var(--accent-gold); color: var(--band-text); font-weight: 700;
+  text-align: center;
+}
+table.tbl td.lbl, table.tbl th.lbl { text-align: left; font-weight: 600; }
+table.tbl tr:nth-child(even) td { background: var(--row-alt); }
+td.pos { color: var(--pos); }
+td.neg { color: var(--neg); }
+tr.flagged td { background: #fff3c4 !important; }
+
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 4px 0; }
+.chart-card { background: rgba(255,255,255,0.6); border: 1px solid var(--grid); padding: 3px; }
+.chart-card img { width: 100%; height: auto; display: block; }
+.chart-card .cap { font-size: 7px; color: var(--muted); text-align: center; padding-top: 1px; }
+
+.summary-band { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin: 4px 0; }
+.summary-band .cell { background: var(--accent-gold); color: var(--band-text); padding: 3px; text-align: center; }
+.summary-band .cell .k { font-size: 6.6px; line-height: 1.1; display: block; }
+.summary-band .cell .v { font-size: 12px; font-weight: 800; }
+
+.capnews { font-size: 7.4px; line-height: 1.3; text-align: justify; }
+.capnews h4 { margin: 2px 0; font-size: 8px; }
+.foot { font-size: 6px; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+{# ===================== PAGE 1 — NEWS ===================== #}
+<section class="page">
+  <header class="masthead">
+    {% if logo_uri %}<img class="logo" src="{{ logo_uri }}"/>{% else %}<div></div>{% endif %}
+    <div class="title">
+      <h1>{{ meta.title }}</h1>
+      <div class="date">{{ meta.weekday }} {{ meta.issue_date }}</div>
+    </div>
+    <div class="dept">{{ meta.department }}</div>
+  </header>
+
+  <div class="quad-grid">
+    {% for key, label in [('us','США'), ('europe','ЕВРОПА'), ('asia','АЗИЯ'), ('cis','СНГ')] %}
+    <div class="quad">
+      <div class="band">{{ label }}</div>
+      <div class="body">
+        {% for para in (news[key] or '').split('\n') if para.strip() %}
+        <p>{{ para }}</p>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{# ===================== PAGE 2 — DATA ===================== #}
+<section class="page">
+  <div class="two-col">
+    {# -------- LEFT: LOCAL MARKET -------- #}
+    <div>
+      <div class="col-head">ЛОКАЛЬНЫЙ РЫНОК</div>
+      <div class="section-band">ДЕНЕЖНЫЙ РЫНОК</div>
+
+      <div class="subgrid">
+        {{ fx_table(cbu_fx, 'КУРСЫ ВАЛЮТ', 'Курс') if cbu_fx }}
+        {{ uzonia_table(money_market.uzonia) if money_market }}
+      </div>
+
+      <div class="subgrid">
+        {{ interbank_table(money_market.interbank) if money_market }}
+        {{ repo_table(money_market.repo) if money_market }}
+      </div>
+
+      {% if money_market %}{{ summary_band(money_market.summary) }}{% endif %}
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <img src="{{ charts.system_liquidity }}"/>
+          <div class="cap">Общая ликвидность (итог корр. счетов в ЦБ)</div>
+        </div>
+        <div class="chart-card">
+          <img src="{{ charts.cb_operations }}"/>
+          <div class="cap">Операции ЦБ по привлечению ликвидности</div>
+        </div>
+      </div>
+
+      <div class="section-band">РЫНОК КАПИТАЛА</div>
+      {{ stocks_table(stocks) if stocks }}
+      {% if news.capital_markets %}
+      <div class="capnews">
+        <h4>НОВОСТИ РЫНКА КАПИТАЛА</h4>
+        {% for item in news.capital_markets %}<p>{{ item }}</p>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# -------- RIGHT: INTERNATIONAL MARKET -------- #}
+    <div>
+      <div class="col-head">МЕЖДУНАРОДНЫЙ РЫНОК</div>
+      <div class="section-band">ДЕНЕЖНЫЙ РЫНОК</div>
+
+      <div class="subgrid">
+        <div>
+          {% if bloomberg %}{% for curve in bloomberg.rate_curves %}{{ curve_table(curve) }}{% endfor %}{% endif %}
+        </div>
+        <div>
+          {{ fx_table(bloomberg.fx, 'КУРСЫ ВАЛЮТ', 'Курс') if bloomberg }}
+          {% if bloomberg %}{{ change_table(bloomberg.commodities.rows, 'СЫРЬЕВОЙ РЫНОК', 'Сырьё') }}{% endif %}
+        </div>
+      </div>
+
+      <div class="section-band">РЫНОК КАПИТАЛА</div>
+      <div class="subgrid">
+        {% if bloomberg %}{{ change_table(bloomberg.equities.rows, 'ИНДЕКСЫ ФОНДОВОГО РЫНКА', 'Индекс') }}{% endif %}
+        {% if bloomberg %}{{ treasury_table(bloomberg.treasuries) }}{% endif %}
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card"><img src="{{ charts.vix }}"/><div class="cap">VIX — индекс волатильности</div></div>
+        <div class="chart-card"><img src="{{ charts.embi }}"/><div class="cap">EMBI — облигации развивающихся стран</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
