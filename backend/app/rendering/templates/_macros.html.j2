@@ -74,12 +74,13 @@
 </table>
 {% endmacro %}
 
+{% macro pct(v) %}{% if v is not none %}<td>{{ '{:.2f}'.format(v).replace('.', ',') }}%</td>{% else %}<td>—</td>{% endif %}{% endmacro %}
 {% macro stocks_table(t) %}
 <table class="tbl">
   <caption>ИТОГИ ТОРГОВ НА ФОНДОВОМ РЫНКЕ</caption>
-  <tr><th class="lbl">Название</th><th>Цена (пред.)</th><th>Цена (тек.)</th><th>Изменение %</th></tr>
+  <tr><th class="lbl">Название</th><th>Цена (пред.)</th><th>Цена (тек.)</th><th>Изменение%</th></tr>
   {% for r in t.rows %}
-  <tr class="{{ 'flagged' if r.flagged }}"><td class="lbl">{{ r.ticker }}</td><td>{{ num(r.price_prev) }}</td><td>{{ num(r.price_curr) }}</td>{{ chg(r.change_pct) }}</tr>
+  <tr class="{{ 'flagged' if r.flagged }}"><td class="lbl">{{ r.ticker }}</td><td>{{ num(r.price_prev) }}</td><td>{{ num(r.price_curr) }}</td>{{ pct(r.change_pct) }}</tr>
   {% endfor %}
 </table>
 {% endmacro %}

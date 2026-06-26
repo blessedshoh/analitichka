@@ -16,6 +16,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from app.core.config import get_settings
 from app.models.newsletter import Newsletter
 from app.rendering import charts as charts_mod
+from app.rendering.fonts import font_face_css
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 
@@ -44,6 +45,7 @@ def render_html(data: Newsletter) -> str:
 
     template = _env().get_template("newsletter.html.j2")
     return template.render(
+        font_face_css=font_face_css(),
         accent_gold=settings.accent_gold,
         page_bg=settings.page_bg,
         background_uri=_asset_data_uri(settings.background_asset),
@@ -74,8 +76,8 @@ async def render_pdf(data: Newsletter) -> bytes:
         page = await browser.new_page()
         await page.set_content(html, wait_until="networkidle")
         pdf_bytes = await page.pdf(
-            width="297mm",
-            height="210mm",
+            width="420mm",
+            height="297mm",
             landscape=True,
             print_background=True,
             margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},

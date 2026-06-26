@@ -55,6 +55,25 @@ operations (green area), VIX, EMBI — embedded as data-URIs.
 
 ---
 
+## Pixel-match & fonts
+
+The template targets the Canva reference exactly: **A3 landscape (420×297mm)**,
+two pages, with the reference's own typefaces embedded as `@font-face`
+data-URIs (so output is identical on any machine, no system fonts needed):
+
+| Element | Font | Source |
+|---|---|---|
+| ОБЗОР РЫНКА title, section headers | **Bebas Neue** | exact glyphs extracted from the reference PDF (`assets/fonts/bebas-ref.woff2`) |
+| Table data | **Times New Roman** → **Tinos** (metric-compatible) | bundled |
+| Captions / news headlines | **Lora** | bundled |
+| Labels, column heads, body | **Noto Sans** | bundled |
+| `*TSMI` footnote | **Open Sans Italic** | bundled |
+
+Point sizes and the gold date colour (`#c0955d`) were measured from the
+reference. The bundled fonts live in `backend/assets/fonts/` (committed);
+`app/rendering/fonts.py` inlines them. To refresh/extend them, install the
+`@fontsource/*` npm packages and copy the `cyrillic`/`latin` woff2 subsets.
+
 ## Brand / design tokens
 
 - **Gold accent** lives in exactly one place: `ACCENT_GOLD` (default
