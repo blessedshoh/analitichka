@@ -16,6 +16,8 @@ from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import HTMLResponse, Response
 
 from app.core.config import get_settings
+from app.core import layout_store
+from app.models.layout import LayoutConfig
 from app.fetchers import (
     bloomberg_excel,
     cbu_currency,
@@ -55,6 +57,33 @@ def config() -> dict:
 def sample() -> Newsletter:
     """Reference-issue payload to pre-fill the form."""
     return sample_data.sample_newsletter()
+
+
+# --------------------------------------------------------------------------- #
+# Design mode: editable layout/style config
+# --------------------------------------------------------------------------- #
+@router.get("/layout", response_model=LayoutConfig)
+def get_layout() -> LayoutConfig:
+    """Current saved layout (or reference defaults if never customised)."""
+    return layout_store.load_layout()
+
+
+@router.get("/layout/defaults", response_model=LayoutConfig)
+def layout_defaults() -> LayoutConfig:
+    """The reference defaults, without changing what's saved."""
+    return layout_store.default_layout()
+
+
+@router.put("/layout", response_model=LayoutConfig)
+def put_layout(cfg: LayoutConfig) -> LayoutConfig:
+    """Persist an edited layout. Used live by Design mode (debounced)."""
+    return layout_store.save_layout(cfg)
+
+
+@router.post("/layout/reset", response_model=LayoutConfig)
+def reset_layout() -> LayoutConfig:
+    """Discard customisations and revert to the reference look."""
+    return layout_store.reset_layout()
 
 
 # --------------------------------------------------------------------------- #

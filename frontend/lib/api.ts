@@ -38,8 +38,20 @@ async function jsonOrThrow(res: Response) {
   return res.json();
 }
 
+export type Layout = Record<string, any>;
+
 export const api = {
   config: () => fetch(`${API_BASE}/api/config`).then(jsonOrThrow),
+
+  getLayout: (): Promise<Layout> => fetch(`${API_BASE}/api/layout`).then(jsonOrThrow),
+  saveLayout: (l: Layout): Promise<Layout> =>
+    fetch(`${API_BASE}/api/layout`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(l),
+    }).then(jsonOrThrow),
+  resetLayout: (): Promise<Layout> =>
+    fetch(`${API_BASE}/api/layout/reset`, { method: "POST" }).then(jsonOrThrow),
   sample: (): Promise<Newsletter> =>
     fetch(`${API_BASE}/api/sample`).then(jsonOrThrow),
 

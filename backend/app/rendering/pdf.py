@@ -14,6 +14,8 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.config import get_settings
+from app.core.layout_store import load_layout
+from app.models.layout import LayoutConfig
 from app.models.newsletter import Newsletter
 from app.rendering import charts as charts_mod
 from app.rendering.fonts import font_face_css
@@ -39,18 +41,16 @@ def _env() -> Environment:
     )
 
 
-def render_html(data: Newsletter) -> str:
+def render_html(data: Newsletter, layout: LayoutConfig | None = None) -> str:
     settings = get_settings()
+    L = layout or load_layout()
     chart_uris = charts_mod.render_all(data.charts)
 
     template = _env().get_template("newsletter.html.j2")
     return template.render(
         font_face_css=font_face_css(),
-        accent_gold=settings.accent_gold,
-        page_bg=settings.page_bg,
+        L=L,
         background_uri=_asset_data_uri(settings.background_asset),
-        background_placement=settings.background_placement,
-        background_opacity=settings.background_opacity,
         logo_uri=_asset_data_uri(settings.logo_asset),
         meta=data.meta,
         news=data.news,
@@ -62,11 +62,11 @@ def render_html(data: Newsletter) -> str:
     )
 
 
-async def render_pdf(data: Newsletter) -> bytes:
+async def render_pdf(data: Newsletter, layout: LayoutConfig | None = None) -> bytes:
     """Render the newsletter to PDF bytes using Playwright."""
     from playwright.async_api import async_playwright
 
-    html = render_html(data)
+    html = render_html(data, layout)
     launch_kwargs: dict = {"args": ["--no-sandbox"]}
     exe = get_settings().playwright_executable_path
     if exe:

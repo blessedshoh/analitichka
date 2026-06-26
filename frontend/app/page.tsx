@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, API_BASE, Newsletter } from "@/lib/api";
+import { api, API_BASE, Newsletter, Layout } from "@/lib/api";
 import EditableGrid, { Col } from "@/components/EditableGrid";
 import FileDrop from "@/components/FileDrop";
 import MetaBadge from "@/components/MetaBadge";
+import DesignPanel from "@/components/DesignPanel";
 
 const CHANGE_COLS = (label: string): Col[] => [
   { key: "name", label },
@@ -18,7 +19,10 @@ export default function Home() {
   const [nl, setNl] = useState<Newsletter | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [designMode, setDesignMode] = useState(false);
+  const [layout, setLayout] = useState<Layout | null>(null);
   const debounce = useRef<any>(null);
+  const layoutDebounce = useRef<any>(null);
 
   // Load reference/sample payload so the form opens pre-filled.
   useEffect(() => {
@@ -26,6 +30,7 @@ export default function Home() {
       .then((c) => document.documentElement.style.setProperty("--accent-gold", c.accent_gold))
       .catch(() => {});
     api.sample().then(setNl).catch((e) => console.error(e));
+    api.getLayout().then(setLayout).catch((e) => console.error(e));
   }, []);
 
   // Live HTML preview, debounced on every edit.
@@ -42,6 +47,28 @@ export default function Home() {
       } catch (e) { console.error(e); }
     }, 500);
   }, []);
+
+  // Design mode: persist the edited layout (debounced) then re-preview, since
+  // the preview endpoint renders from the saved layout.
+  const onLayoutChange = useCallback((k: string, v: any) => {
+    setLayout((prev) => {
+      const next = { ...(prev || {}), [k]: v };
+      clearTimeout(layoutDebounce.current);
+      layoutDebounce.current = setTimeout(async () => {
+        try {
+          await api.saveLayout(next);
+          if (nl) refreshPreview(nl);
+        } catch (e) { console.error(e); }
+      }, 350);
+      return next;
+    });
+  }, [nl, refreshPreview]);
+
+  const resetLayout = useCallback(async () => {
+    const def = await api.resetLayout();
+    setLayout(def);
+    if (nl) refreshPreview(nl);
+  }, [nl, refreshPreview]);
 
   useEffect(() => { if (nl) refreshPreview(nl); }, [nl, refreshPreview]);
 
@@ -85,6 +112,10 @@ export default function Home() {
         <h1>NBU — Обзор рынка</h1>
         <p className="sub">Введите новости, обновите данные, нажмите «Сгенерировать PDF».</p>
 
+        {designMode && layout ? (
+          <DesignPanel layout={layout} onChange={onLayoutChange} onReset={resetLayout} />
+        ) : (
+        <>
         {/* ----- Header meta ----- */}
         <h2>Выпуск</h2>
         <div className="row">
@@ -231,6 +262,8 @@ export default function Home() {
         )}
 
         <div style={{ height: 30 }} />
+        </>
+        )}
       </div>
 
       {/* ----- Preview ----- */}
@@ -239,8 +272,12 @@ export default function Home() {
           <button className="primary" disabled={busy === "generate"} onClick={generate}>
             {busy === "generate" ? "Генерация…" : "⬇ Сгенерировать PDF"}
           </button>
+          <button className={designMode ? "" : "ghost"} onClick={() => setDesignMode((v) => !v)}
+            style={designMode ? {} : { color: "#eee", borderColor: "#555" }}>
+            {designMode ? "✓ Конструктор включён" : "🎨 Конструктор макета"}
+          </button>
           <span className="muted" style={{ color: "#bbb" }}>
-            Живой предпросмотр обновляется при редактировании · API: {API_BASE}
+            {designMode ? "Меняйте стиль — сохраняется автоматически" : "Живой предпросмотр · API: " + API_BASE}
           </span>
         </div>
         <iframe src={previewUrl} title="preview" />

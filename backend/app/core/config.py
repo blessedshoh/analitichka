@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     cbu_json_url: str = "https://cbu.uz/ru/arkhiv-kursov-valyut/json/"
     cbu_base_url: str = "https://cbu.uz"
     bloomberg_map_path: str = str(BACKEND_ROOT / "config" / "bloomberg_map.yaml")
+    layout_path: str = str(BACKEND_ROOT / "config" / "layout.json")
 
     # CBU rates we surface in the local FX table (UZS per unit).
     cbu_currencies: list[str] = ["USD", "EUR", "RUB", "CNY", "GBP"]

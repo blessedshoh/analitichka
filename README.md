@@ -55,6 +55,19 @@ operations (green area), VIX, EMBI — embedded as data-URIs.
 
 ---
 
+## Design mode (the "constructor")
+
+Click **🎨 Конструктор макета** in the preview bar to enter Design mode. The
+left panel turns into style controls — colours, fonts, font sizes, spacing,
+border widths, the watermark, and show/hide toggles for charts / capital-news
+/ footnote. The preview updates live and every change **auto-saves** to
+`config/layout.json`. Turn Design mode off and every future issue renders with
+that locked-in look. **Сбросить к эталону** reverts to the reference design.
+
+Layout lives in `models/layout.py` (`LayoutConfig`, defaults == the reference)
+and is served/saved via `GET|PUT /api/layout`, `POST /api/layout/reset`. The
+template reads every token from it, so the design is data, not code.
+
 ## Pixel-match & fonts
 
 The template targets the Canva reference exactly: **A3 landscape (420×297mm)**,
