@@ -12,6 +12,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from app.models.bloomberg import BloombergData
+from app.models.capital import CapitalTable
 from app.models.fx import CbuFxTable
 from app.models.money_market import MoneyMarketLocal
 from app.models.news import NewsBlocks
@@ -37,4 +38,5 @@ class Newsletter(BaseModel):
     money_market: Optional[MoneyMarketLocal] = None
     bloomberg: Optional[BloombergData] = None
     stocks: Optional[StockTable] = None
+    capital_tables: list[CapitalTable] = Field(default_factory=list)
     charts: ChartSet = Field(default_factory=ChartSet)

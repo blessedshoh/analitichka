@@ -58,6 +58,7 @@ def render_html(data: Newsletter, layout: LayoutConfig | None = None) -> str:
         money_market=data.money_market,
         bloomberg=data.bloomberg,
         stocks=data.stocks,
+        capital_tables=data.capital_tables,
         charts=chart_uris,
     )
 

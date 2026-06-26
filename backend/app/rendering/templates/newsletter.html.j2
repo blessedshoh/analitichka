@@ -1,4 +1,5 @@
-{% from "_macros.html.j2" import num, chg, fx_table, change_table, curve_table, uzonia_table, repo_table, interbank_table, treasury_table, stocks_table, summary_band with context %}
+{% from "_macros.html.j2" import num, chg, fx_table, change_table, curve_table, uzonia_table, repo_table, interbank_table, treasury_table, stocks_table, summary_band, cap_table with context %}
+{% set cap = {} %}{% for t in (capital_tables or []) %}{% set _ = cap.update({t.slot: t}) %}{% endfor %}
 {#-
   NBU "ОБЗОР РЫНКА" — two A3-landscape pages, pixel-matched to the Canva
   reference: exact fonts (Bebas/Lora/Noto Sans/Open Sans/Times→Tinos), exact
@@ -61,7 +62,7 @@ body {
 .cartouche {
   justify-self: center; text-align: center;
   background: #fffdf8; border: 2pt solid var(--gold-line);
-  border-radius: 50%/50%; padding: 6pt 80pt 12pt; min-width: 300pt;
+  border-radius: 50%/50%; padding: 8pt 90pt 14pt; min-width: 340pt;
 }
 .cartouche h1 {
   margin: 0; font-family: var(--display-font);
@@ -194,14 +195,22 @@ tr.flagged td { background: #fff3c4 !important; }
       </div>
       {% endif %}
       <div class="section-band">РЫНОК КАПИТАЛА</div>
-      {{ stocks_table(stocks) if stocks }}
-      {% if L.show_footnote %}<div class="foot-note">*TSMI - Tashkent Stock Market Index</div>{% endif %}
-      {% if L.show_capital_news and news.capital_markets %}
-      <div class="capnews">
-        <h4>НОВОСТИ РЫНКА КАПИТАЛА</h4>
-        {% for item in news.capital_markets %}<p>{{ item }}</p>{% endfor %}
+      <div class="subgrid">
+        <div>
+          {{ cap_table(cap.corp_bonds) }}
+          {{ stocks_table(stocks) if stocks }}
+          {% if L.show_footnote %}<div class="foot-note">*TSMI - Tashkent Stock Market Index</div>{% endif %}
+        </div>
+        <div>
+          {{ cap_table(cap.gov_bonds) }}
+          {% if L.show_capital_news and news.capital_markets %}
+          <div class="capnews">
+            <h4>НОВОСТИ РЫНКА КАПИТАЛА</h4>
+            {% for item in news.capital_markets %}<p>{{ item }}</p>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
       </div>
-      {% endif %}
     </div>
 
     {# -------- RIGHT: INTERNATIONAL MARKET -------- #}
@@ -217,15 +226,19 @@ tr.flagged td { background: #fff3c4 !important; }
       </div>
       <div class="section-band">РЫНОК КАПИТАЛА</div>
       <div class="subgrid">
-        {% if bloomberg %}{{ change_table(bloomberg.equities.rows, 'ИНДЕКСЫ ФОНДОВОГО РЫНКА', 'Индекс') }}{% endif %}
-        {% if bloomberg %}{{ treasury_table(bloomberg.treasuries) }}{% endif %}
+        <div>
+          {{ cap_table(cap.eurobonds_fx) }}
+          {{ cap_table(cap.eurobonds_local) }}
+        </div>
+        <div>
+          {% if bloomberg %}{{ change_table(bloomberg.equities.rows, 'ИНДЕКСЫ ФОНДОВОГО РЫНКА', 'Индекс') }}{% endif %}
+          {% if bloomberg %}{{ treasury_table(bloomberg.treasuries) }}{% endif %}
+          {% if L.show_charts %}
+          <div class="chart-card"><img src="{{ charts.vix }}"/><div class="cap">VIX — индекс волатильности</div></div>
+          <div class="chart-card"><img src="{{ charts.embi }}"/><div class="cap">EMBI — облигации развив. стран</div></div>
+          {% endif %}
+        </div>
       </div>
-      {% if L.show_charts %}
-      <div class="charts-row">
-        <div class="chart-card"><img src="{{ charts.vix }}"/><div class="cap">VIX — индекс волатильности фондовых рынков</div></div>
-        <div class="chart-card"><img src="{{ charts.embi }}"/><div class="cap">EMBI — облигации развивающихся стран</div></div>
-      </div>
-      {% endif %}
     </div>
   </div>
 </section>

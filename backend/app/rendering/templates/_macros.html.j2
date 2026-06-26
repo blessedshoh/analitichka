@@ -74,6 +74,18 @@
 </table>
 {% endmacro %}
 
+{% macro cap_table(t) %}
+{% if t %}
+<table class="tbl">
+  <caption>{{ t.title }}</caption>
+  <tr>{% for c in t.columns %}<th class="{{ 'lbl' if loop.first }}">{{ c }}</th>{% endfor %}</tr>
+  {% for row in t.rows %}
+  <tr>{% for cell in row %}<td class="{{ 'lbl' if loop.first }}">{{ cell }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endmacro %}
+
 {% macro pct(v) %}{% if v is not none %}<td>{{ '{:.2f}'.format(v).replace('.', ',') }}%</td>{% else %}<td>—</td>{% endif %}{% endmacro %}
 {% macro stocks_table(t) %}
 <table class="tbl">
