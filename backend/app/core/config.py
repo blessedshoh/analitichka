@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     background_asset: str = str(BACKEND_ROOT / "assets" / "background.png")
     # one of: "watermark" | "cover" | "header" | "none"
     background_placement: str = "watermark"
-    background_opacity: float = 0.07
+    background_opacity: float = 0.05
     logo_asset: str = str(BACKEND_ROOT / "assets" / "nbu_logo.png")
 
     # --- Data sources -------------------------------------------------------

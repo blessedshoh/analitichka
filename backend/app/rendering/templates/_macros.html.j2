@@ -1,5 +1,5 @@
 {% macro num(v, dp=2) %}{% if v is not none %}{{ '{:,.{}f}'.format(v, dp).replace(',', ' ') }}{% else %}—{% endif %}{% endmacro %}
-{% macro chg(v) %}{% if v is not none %}<td class="{{ 'pos' if v >= 0 else 'neg' }}">{{ '{:+.2f}'.format(v) }}</td>{% else %}<td>—</td>{% endif %}{% endmacro %}
+{% macro chg(v) %}{% if v is not none %}<td>{{ '{:,.2f}'.format(v).replace(',', ' ') }}</td>{% else %}<td>—</td>{% endif %}{% endmacro %}
 
 {% macro fx_table(t, caption, label) %}
 <table class="tbl">
